@@ -1,0 +1,11 @@
+{
+  "node": true,
+  "strict": true,
+  "devel": true,// Allow developments statements e.g. `console.log();
+   "passfail": false,  // Stop on first error.
+  "globals": {
+    "require": false,
+    "module": true
+  },
+  "mocha": true
+}

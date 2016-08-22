@@ -1,4 +1,4 @@
-// 'use strict';
+"use strict";
 
 var elasticsearch = require('elasticsearch');
 var util = require('util');
@@ -8,7 +8,7 @@ var L = require('lgr');
 
 var esConfig = require('../config/es_config');
 var email = require('../lib/email');
-var buildQuery=require('../esQuery/es_query_builder');
+var buildQuery = require('../esQuery/es_query_builder');
 
 var ESClient = new elasticsearch.Client({
   host: esConfig.movies.host
@@ -26,7 +26,65 @@ var report = {
   },
 
   prepareQuery: function prepareQueryFn(opts, cb) {
-    cb(null, opts);
+    //index and type taken from kibana- 'https://github.com/bly2k/files/blob/master/accounts.zip?raw=true'
+    var esOpts = {
+      index: 'accounts',
+      type: 'account'
+    };
+
+    async.parallel({
+      //total employees count
+      one: function (cb) {
+        var queryOpts = {};
+        var firstResult = {};
+        var esQuery = buildQuery.QueryBuilder(queryOpts);
+        esOpts.body = esQuery;
+        ESClient.search(esOpts).then(function (resp) {
+          firstResult = resp.hits.total;
+          cb(null, firstResult);
+        });
+      },
+      // Top 5 male account
+      two: function (cb) {
+
+        var fieldsRequired=["firstname", "lastname", "balance"];
+        var queryOpts = {limit:5};
+        var secondResult = {};
+        var aa = {
+          "size": 5,
+          "_source": ["firstname", "lastname", "balance"],
+          "query": {
+            "filtered": {
+              "query": {
+                "match_all": {}
+              },
+              "filter": {
+                "and": [{
+                  "term": {
+                    "gender": "m"
+                  }
+                }]
+              }
+            }
+          },
+          "sort": [{
+            "balance": {
+              "order": "desc"
+            }
+          }]
+        };
+        var esQuery = buildQuery.QueryBuilder(queryOpts, fieldsRequired);
+        esOpts.body = aa;
+        ESClient.search(esOpts).then(function (resp) {
+          secondResult = resp;
+          cb(null, secondResult);
+        });
+      }
+    }, function (err, results) {
+      console.log(results);
+
+    });
+
   },
 
   fetchLog: function fetchLogFn(opts, cb) {
@@ -52,15 +110,9 @@ module.exports = report;
 /*---------------------------------------------Driver Function------------------------------------------------------*/
 
 if (require.main === module) {
-  //intervalHours will generate the report from past 24 hours to current time 
-  var intervalHours = process.argv[2] || 24;
-  var fromDate = new Date();
-  fromDate.setHours(fromDate.getHours() - intervalHours);
 
   var opts = {
-    toDate: (new Date()),
-    fromDate: fromDate,
-    recipients: process.argv[4] || mailOpts.defaultRecipients,
+    recipients: process.argv[2] || mailOpts.defaultRecipients,
   };
   console.log('Creating report with options: ' + JSON.stringify(opts));
   var r = report;
