@@ -34,6 +34,33 @@ var buildQuery = {
           };
           esQueryObj.query.bool.must.push(getRangeObj(rangeObj));
         }
+      } else if ('filter' === name) {
+        delete esQueryObj.query.bool;
+        esQueryObj.query.filtered = {};
+        esQueryObj.query.filtered.filter = {};
+        esQueryObj.query.filtered.filter.and = [];
+        if (data.filter.length === 0 || data.filter.length === null || data.filter.length ===
+          undefined) {
+          esQueryObj.query.filtered.filter = {};
+        } else {
+          var ob = {};
+          ob["term"] = {};
+          esQueryObj.query.filtered.filter.and.push(ob);
+          var d = {};
+          var key = data.filter[0]; //fieldName
+          d[key] = data.filter[1]; //fieldValue
+          esQueryObj.query.filtered.filter.and[0].term = d;
+        }
+      }else if('aggs'===name){
+        //TODO: aggregations single/nested
+      }
+       else if ('sort' === name) {
+        esQueryObj.sort = [];
+        var k = {};
+        k[data.sort[0]] = { //data.sort[0]-->field to be sort
+          "order": data.sort[1] || desc //data.sort[1]-->order to be sorted
+        };
+        esQueryObj.sort.push(k);
       } else {
         var ar;
         if (_.isArray(data[name])) /*If data itself is array*/
@@ -52,37 +79,6 @@ var buildQuery = {
         }
       }
     }
-    console.log(JSON.stringify(esQueryObj));
-    return esQueryObj;
-  },
-
-  sort: function (field, order) {
-    var sort = [];
-    var k = {};
-    k[field] = {
-      "order": order
-    };
-    sort.push(k);
-    return sort;
-  },
-
-  filter: function (fieldName, fieldValue) {
-    esQueryObj.query = {
-      "filtered": {
-        "filter": {
-          "and": []
-        }
-      }
-    };
-    var b = {};
-    b["term"] = {};
-
-    esQueryObj.query.filtered.filter.and.push(b);
-    var c = {};
-    var key = fieldName;
-    c[key] = fieldValue;
-    esQueryObj.query.filtered.filter.and[0].term = c;
-    console.log(JSON.stringify(esQueryObj));
     return esQueryObj;
   }
 
@@ -118,27 +114,4 @@ function getBoolObj(name, ar) {
       boolObj.bool.should.push(getMatchObj(name, doc));
   });
   return boolObj;
-}
-
-/*---------------------------------------------Driver Function------------------------------------------------------*/
-
-if (require.main === module) {
-  (function () {
-    var field = 'balance';
-    var order = 'desc';
-    var sortTest = buildQuery.sort(field, order);
-
-    var fTerm = 'gender';
-    var fValue = 'm';
-    // buildQuery.filter(fTerm, fValue);
-
-    var kkk = {};
-    var aa ={age:[30,35]};
-    var d = "age, employer";
-    kkk = buildQuery.QueryBuilder(aa, d);
-    kkk.sort = sortTest;
-
-    console.log(JSON.stringify(kkk));
-
-  })();
 }
