@@ -51,8 +51,34 @@ var buildQuery = {
           d[key] = data.filter[1]; //fieldValue
           esQueryObj.query.filtered.filter.and[0].term = d;
         }
-      }else if('aggs'===name){
+      }else if('aggs'===name){ console.log("aggregation detected");
+        console.log(data.aggs);
         //TODO: aggregations single/nested
+        var aggName;var terms = {};
+        Object.keys(data.aggs).forEach(function (a) {
+          aggName = data.aggs[a];
+            esQueryObj.aggs = {};
+            console.log("^^^");
+            // console.log(esQueryObj);
+          // console.log(aggName);
+          Object.keys(aggName).forEach(function (b) {
+            console.log(">>>");//console.log(aggName);
+            esQueryObj.aggs[aggName]={};
+            console.log(esQueryObj);
+            // esQueryObj.aggs[aggName] = aggName[b];
+            // console.log(aggName[b]);
+            process.exit();
+            // esQueryObj.aggs = {};
+            // esQueryObj.aggs[aggName] = {};
+            // esQueryObj.aggs[aggName].terms = {};
+            // process.exit();
+
+            // esQueryObj.aggs[aggName].terms.field = {};
+            // esQueryObj.aggs[aggName].terms.field = "";
+            // esQueryObj.aggs[aggName].terms.size = "";
+
+          });
+        });
       }
        else if ('sort' === name) {
         esQueryObj.sort = [];
@@ -78,7 +104,7 @@ var buildQuery = {
           esQueryObj.query.bool.must.push(getBoolObj(name, ar));
         }
       }
-    }
+    } console.log(" final query :   "); console.log(JSON.stringify(esQueryObj));
     return esQueryObj;
   }
 
