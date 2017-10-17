@@ -4,7 +4,6 @@ var elasticsearch = require('elasticsearch');
 var util = require('util');
 var async = require('async');
 var json2csv = require('json2csv');
-var L = require('lgr');
 
 var esConfig = require('../config/es_config');
 var email = require('../lib/email');
@@ -34,7 +33,7 @@ var report = {
         var totalCount = {};
         var esQuery = buildQuery.QueryBuilder(queryOpts);
         esOpts.body = esQuery;
-        // L.log("totalEmployeesCount: " + JSON.stringify(esQuery));
+        // console.log("totalEmployeesCount: " + JSON.stringify(esQuery));
         ESClient.search(esOpts).then(function (resp) {
           totalCount = resp.hits.total;
           cb(null, totalCount);
@@ -51,7 +50,7 @@ var report = {
         var topMaleAccounts = {};
         var esQuery = buildQuery.QueryBuilder(queryOpts, fieldsRequired);
         esOpts.body = esQuery;
-        // L.log("topFiveMaleAccount: " + JSON.stringify(esQuery));
+        // console.log("topFiveMaleAccount: " + JSON.stringify(esQuery));
         ESClient.search(esOpts).then(function (resp) {
           topMaleAccounts = resp.hits.hits;
           cb(null, topMaleAccounts);
@@ -67,7 +66,7 @@ var report = {
         var topFemaleAccounts = {};
         var esQuery = buildQuery.QueryBuilder(queryOpts, fieldsRequired);
         esOpts.body = esQuery;
-        // L.log("topFiveFemaleAccount" + JSON.stringify(esQuery));
+        // console.log("topFiveFemaleAccount" + JSON.stringify(esQuery));
         ESClient.search(esOpts).then(function (res) {
           topFemaleAccounts = res.hits.hits;
           cb(null, topFemaleAccounts);
@@ -83,7 +82,7 @@ var report = {
         var topAccounts = {};
         var esQuery = buildQuery.QueryBuilder(queryOpts, fieldsRequired);
         esOpts.body = esQuery;
-        L.log("topFiveAccounts: " + JSON.stringify(esQuery));
+        console.log("topFiveAccounts: " + JSON.stringify(esQuery));
         ESClient.search(esOpts).then(function (res) {
           topAccounts = res.hits.hits;
           cb(null, topAccounts);
@@ -145,9 +144,7 @@ var report = {
         esOpts.body = esQuery;
         console.log(">>> ");
         console.log();
-        console.log();
-        console.log();
-        L.log("topcities: " + JSON.stringify(esQuery));
+        console.log("topcities: " + JSON.stringify(esQuery));
         // var topcities = {};
 
         // cb(null, 'dummy123');
@@ -214,7 +211,7 @@ if (require.main === module) {
   var opts = {
     recipients: process.argv[2] || mailOpts.defaultRecipients,
   };
-  L.log('Creating report with options: ' + JSON.stringify(opts));
+  console.log('Creating report with options: ' + JSON.stringify(opts));
   var r = report;
   var routes = [r.collectData, r.prepareData, r.prepareReport, r.sendReport];
   var index = 0;
